@@ -1,10 +1,24 @@
-var svg = d3
+const svg = d3
   .select('#visSvg')
 
 let width = svg.style('width').slice(0, -2)
 let height = svg.style('height').slice(0, -2)
 
-var link = svg
+// const resize_ob = new ResizeObserver(entries => {
+  // 	let rect = entries[0].contentRect;
+
+  // 	width = rect.width;
+  // 	height = rect.height;
+  // });
+
+  // start observing for resize
+  // resize_ob.observe(document.querySelector("#demo-textarea"));
+
+const svgWrapper = svg.append('g')
+  .classed('wrapper', true)
+  .attr('transform', 'translate(0, 0) scale(1)')
+
+var link = svgWrapper
   .append("g")
     .attr('id', 'linkContainer')
     .attr("stroke", "#999")
@@ -15,7 +29,7 @@ var link = svg
     .attr('marker-end', 'url(#arrowhead)')
   .selectAll("path");
 
-var node = svg
+var node = svgWrapper
   .append("g")
     .attr('id', 'nodeContainer')
     .attr("stroke", "#449")
@@ -23,7 +37,7 @@ var node = svg
     .attr("fill", "#77b")
   .selectAll(".node");
 
-var linkLabel = svg
+var linkLabel = svgWrapper
   .append("g")
     .attr("stroke", "#999")
     .attr("stroke-opacity", 0.6)
@@ -32,17 +46,28 @@ var linkLabel = svg
 
 const simulation = d3
   .forceSimulation()
-  .force("charge", d3.forceManyBody().strength(-800))
+  .force("charge", d3.forceManyBody().strength(-2000))
   .force('collide', d3.forceCollide().radius(d => getClassRadius(d)))
   .force("link",
     d3.forceLink()
       .id((d) => d.id)
       .distance(200)
+      .strength(0.1)
   )
   .force("x", d3.forceX(width / 2))
   .force("y", d3.forceY(height / 2))
   .on("tick", ticked);
 
+svg.call(drag(simulation))
+
+svg.call(
+  d3.zoom().on("zoom", (event) => {
+    console.log(event.transform)
+    let originalTransform = svgWrapper.attr("transform")
+    svgWrapper.attr("transform", zoomTransformString(originalTransform, event.transform.k))
+    console.log(svgWrapper.attr("transform"))
+  })
+)
 
 function ticked() {
   node
@@ -67,10 +92,12 @@ function makeLinkPath(source, target) {
   `
 }
 
+
 function normaliseVector(vector) {
   let magnitude = vectorMagnitude(vector)
   return {'x': vector.x / magnitude, 'y': vector.y / magnitude}
 }
+
 
 function vectorMagnitude(vector) {
   return Math.sqrt(vector.x * vector.x + vector.y * vector.y)
@@ -105,13 +132,14 @@ function updateForceVis(visData) {
         .attr("stroke-width", '1')
         .attr("stroke", "#000")
         .attr("fill", "#000")
+        .attr('pointer-events', 'none')
       return nodeContainer
     });
 
 
   link = link
     .data(linksData, (d) => [d.source, d.target])
-    .join(enter => enter.append('path'));
+    .join(enter => enter.append('path').attr('pointer-events', 'none'));
 
   simulation.nodes(classesData);
   simulation.force("link").links(linksData);
@@ -129,16 +157,26 @@ function addLink(linkToAdd) {
 
 }
 
+var draggingBackground = false;
 function drag(simulation) {
   function dragstarted(event) {
+    draggingBackground = 'id' in event.sourceEvent.target && event.sourceEvent.target.id == "visSvg"
+
     if (!event.active) simulation.alphaTarget(0.3).restart();
+    event.sourceEvent.stopPropagation();
     event.subject.fx = event.subject.x;
     event.subject.fy = event.subject.y;
   }
 
   function dragged(event) {
-    event.subject.fx = event.x;
-    event.subject.fy = event.y;
+    event.sourceEvent.stopPropagation();
+    if(draggingBackground) {
+      let newTransform = moveTransformString(svgWrapper.attr('transform'), event.dx, event.dy)
+      svgWrapper.attr('transform', newTransform)
+    } else {
+      event.subject.fx = event.x;
+      event.subject.fy = event.y;
+    }
   }
 
   function dragended(event) {
@@ -156,5 +194,30 @@ function drag(simulation) {
 
 
 function getClassRadius(cls) {
-  return (Math.log(cls.count) / Math.log(10)) * 10
+  return (Math.log(cls.count) / Math.log(10)) * 8
+}
+
+function moveTransformString(transform, dx, dy) {
+  let translatePos = transform.indexOf("translate(") + 10
+  let translateEnd = transform.indexOf(")", translatePos) // bind position to match correct ()
+  let original = transform.substring(
+    translatePos, translateEnd
+  ).split(",");
+  let newX = Number(original[0]) + dx
+  let newY = Number(original[1]) + dy
+  let newTransform = transform.replace(
+    transform.substring(translatePos - 10, translateEnd + 1),
+    `translate(${newX}, ${newY})`
+  )
+  return newTransform
+}
+
+function zoomTransformString(transform, newScale) {
+  let scalePos = transform.indexOf("scale(") + 6
+  let scaleEnd = transform.indexOf(")", scalePos) // bind position to match correct ()
+  let newTransform = transform.replace(
+    transform.substring(scalePos - 6, scaleEnd + 1),
+    `scale(${newScale})`
+  )
+  return newTransform
 }

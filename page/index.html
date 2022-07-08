@@ -11,8 +11,8 @@
   </head>
   <body>
     <div class="container-fluid d-flex flex-column vh-100">
-    <div class="row p-2" id="header" style="background-color: steelblue;">
-      <h3 id="helloHeader">Exploring SPARQL endpoint </h3>
+    <div class="row p-2" id="header" style="background-color: rgb(38, 62, 156);">
+      <h3 id="helloHeader" style="color: #ddd">Exploring SPARQL endpoint </h3>
     </div>
     <div class="row flex-fill">
       <div class="col-9" id="visContainer">
@@ -20,9 +20,9 @@
           <defs>
             <marker id="arrowhead" markerWidth="10" markerHeight="7"
             refX="0" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7"/>
-          </marker>
-      </defs>
+              <polygon points="0 0, 10 3.5, 0 7"/>
+           </marker>
+          </defs>
         </svg>
       </div>
       <div class="col-3 flex-column" style="background-color: rgb(70, 164, 180);">
@@ -31,7 +31,7 @@
           <div class="default">
             Click on an object to show more information.
           </div>
-          <div class="detailContainer text-wrap text-break"></div>
+          <div class="detailContainer"></div>
         </div>
         <div class="container-fluid p-2 my-2 border border-1 rounded">
           <h4>Title</h4>
@@ -43,6 +43,8 @@
           <h4>Request</h4>
           <div>
             Request additional endpoint information.
+            <input type="text" placeholder="class URI">
+            <button class="queryClass btn btn-primary" type="submit">Query</button>
           </div>
         </div>
       </div>

@@ -79,9 +79,34 @@ function main() {
         .then(response => handleClassesQuery(response))
         .then(visData => makeVisGraph(visData))
         .then(visData => queryClassProperties(visData))
+        .then(visData => testAddLinks(visData))
 }
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
+async function testAddLinks(visData) {
+    await sleep(3000)
+    visData.links.push({
+        'source': "http://www.w3.org/ns/dcat#Distribution",
+        'target': "http://www.w3.org/ns/dcat#Dataset",
+        'id': "http://www.example.com/testProperty",
+        'label': "testProperty",
+        'count': 1000
+    })
+    makeVisGraph(visData)
+    await sleep(3000)
+    visData.links.push({
+        'source': "http://www.w3.org/ns/dcat#Dataset",
+        'target': "http://purl.org/linked-data/cube#Observation",
+        'id': "http://www.example.com/testProperty",
+        'label': "testProperty",
+        'count': 10000
+    })
+    makeVisGraph(visData)
+    return visData
+}
 
 async function queryClassProperties(visData) {
     if(!visData.hasOwnProperty('links')) {
@@ -136,7 +161,6 @@ async function queryEndpoint(endpoint, query) {
 
     return fetch('testresult.json')
         .then(data=>data.json())
-
     // return fetch(queryURL)
     //     .then(data=>data.json())
 }
