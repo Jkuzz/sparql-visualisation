@@ -1,9 +1,3 @@
-
-const drag = d3.drag()
-  .on("start", dragstarted)
-  .on("drag", dragged)
-  .on("end", dragended);
-
 var svg = d3
   .select('#visSvg')
 
@@ -12,20 +6,29 @@ let height = svg.style('height').slice(0, -2)
 
 var link = svg
   .append("g")
+    .attr('id', 'linkContainer')
     .attr("stroke", "#999")
-    .attr("stroke-opacity", 0.6)
-  .selectAll("line");
+    .attr("stroke-opacity", 1)
+    .attr('stroke', 'black')
+    .attr("stroke-width", 3)
+    .attr('fill', 'transparent')
+    .attr('marker-end', 'url(#arrowhead)')
+  .selectAll("path");
 
 var node = svg
   .append("g")
+    .attr('id', 'nodeContainer')
     .attr("stroke", "#449")
     .attr("stroke-width", 1.5)
     .attr("fill", "#77b")
-  .selectAll("circle");
+  .selectAll(".node");
 
-var texts = svg
-  .append('g')
-  .selectAll('text')
+var linkLabel = svg
+  .append("g")
+    .attr("stroke", "#999")
+    .attr("stroke-opacity", 0.6)
+  .selectAll("rect");
+
 
 const simulation = d3
   .forceSimulation()
@@ -43,19 +46,10 @@ const simulation = d3
 
 function ticked() {
   node
-    .attr("cx", (d) => d.x)
-    .attr("cy", (d) => d.y);
+    .attr('transform', (d) =>`translate(${d.x}, ${d.y})`)
 
   link
     .attr('d', d => makeLinkPath(d.source, d.target))
-    // .attr("x1", (d) => d.source.x)
-    // .attr("y1", (d) => d.source.y)
-    // .attr("x2", (d) => d.target.x)
-    // .attr("y2", (d) => d.target.y);
-
-  texts
-    .attr('x', d => d.x)
-    .attr('y', d => d.y );
 }
 
 
@@ -63,7 +57,7 @@ function makeLinkPath(source, target) {
   let direction = {'x': target.x - source.x, 'y': target.y - source.y}
   let normalisedDir = normaliseVector(direction)
 
-  let curveMidOffset = 100
+  let curveMidOffset = 150
 
   let midpointX = (target.x + source.x + normalisedDir.y * curveMidOffset) / 2
   let midpointY = (target.y + source.y - normalisedDir.x * curveMidOffset) / 2
@@ -95,37 +89,28 @@ function updateForceVis(visData) {
 
   node = node
     .data(classesData, (d) => d.id)
-    .join((enter) =>
-      enter
-        .append("circle")
-          .attr('r', d => getClassRadius(d))
-          // .attr('x', width / 2)
-          // .attr('y', height / 2)
-          .call((node) => node.append("title").text((d) => d.label))
-          .call(drag)
-    );
-
-  texts = texts
-    .data(classesData, (d) => d.id)
-    .join((enter) =>
-      enter
-        .append("text")
-          .text((d) => d.label)
-          .attr('class', 'nodeLabel')
-          .attr('text-anchor', 'middle')
-    );
+    .join(enter => {
+      let nodeContainer = enter.append('g')
+        .classed('node', true)
+        .attr('transform', `translate(${width / 2}, ${height / 2})`)
+      nodeContainer.append("circle")
+        .attr('r', d => getClassRadius(d))
+        .call((node) => node.append("title").text((d) => d.label))
+        .call(drag(simulation))
+      nodeContainer.append("text")
+        .text((d) => d.label)
+        .classed('nodeLabel', true)
+        .attr('text-anchor', 'middle')
+        .attr("stroke-width", '1')
+        .attr("stroke", "#000")
+        .attr("fill", "#000")
+      return nodeContainer
+    });
 
 
   link = link
     .data(linksData, (d) => [d.source, d.target])
-    .join((enter) =>
-      enter.append('path')
-        .attr('marker-end', 'url(#arrowhead)')
-        .attr('pathLength', '1')
-        .attr('stroke-dasharray', '0.9')
-        .attr('stroke', 'black')
-        .attr('fill', 'transparent')
-    );
+    .join(enter => enter.append('path'));
 
   simulation.nodes(classesData);
   simulation.force("link").links(linksData);
@@ -143,27 +128,32 @@ function addLink(linkToAdd) {
 
 }
 
+function drag(simulation) {
+  function dragstarted(event) {
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    event.subject.fx = event.subject.x;
+    event.subject.fy = event.subject.y;
+  }
 
-function dragstarted(event, d) {
-  if (!event.active) simulation.alphaTarget(0.3).restart();
-  d.fx = d.x;
-  d.fy = d.y;
-}
+  function dragged(event) {
+    event.subject.fx = event.x;
+    event.subject.fy = event.y;
+  }
 
+  function dragended(event) {
+    if (!event.active) simulation.alphaTarget(0);
+    event.subject.fx = null;
+    event.subject.fy = null;
+  }
 
-function dragged(event, d) {
-  d.fx = event.x;
-  d.fy = event.y;
-}
-
-
-function dragended(event, d) {
-  if (!event.active) simulation.alphaTarget(0);
-  d.fx = null;
-  d.fy = null;
+  return d3.drag()
+    .container(g => g)  // To drag the <g> element
+    .on("start", dragstarted)
+    .on("drag", dragged)
+    .on("end", dragended);
 }
 
 
 function getClassRadius(cls) {
-  return Math.log(cls.count) * 2.5
+  return Math.log(cls.count) * 3
 }
