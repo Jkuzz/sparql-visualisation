@@ -32,7 +32,7 @@ var linkLabel = svg
 
 const simulation = d3
   .forceSimulation()
-  .force("charge", d3.forceManyBody().strength(-500))
+  .force("charge", d3.forceManyBody().strength(-800))
   .force('collide', d3.forceCollide().radius(d => getClassRadius(d)))
   .force("link",
     d3.forceLink()
@@ -97,6 +97,7 @@ function updateForceVis(visData) {
         .attr('r', d => getClassRadius(d))
         .call((node) => node.append("title").text((d) => d.label))
         .call(drag(simulation))
+        .on('click', (d, i) => displayInfo(d, i))
       nodeContainer.append("text")
         .text((d) => d.label)
         .classed('nodeLabel', true)
@@ -155,5 +156,5 @@ function drag(simulation) {
 
 
 function getClassRadius(cls) {
-  return Math.log(cls.count) * 3
+  return (Math.log(cls.count) / Math.log(10)) * 10
 }

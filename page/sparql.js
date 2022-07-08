@@ -134,8 +134,11 @@ async function queryEndpoint(endpoint, query) {
     let queryURL = endpoint + '?query=' + encodeURIComponent(query);
     queryURL += '&format=application%2Fsparql-results%2Bjson';
 
-    return fetch(queryURL)
+    return fetch('testresult.json')
         .then(data=>data.json())
+
+    // return fetch(queryURL)
+    //     .then(data=>data.json())
 }
 
 

@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="bootstrap-5.2.0\css\bootstrap.min.css" rel="stylesheet">
     <link href="style.css" rel="stylesheet">
     <script src="bootstrap-5.2.0\js\bootstrap.min.js"></script>
@@ -10,19 +10,48 @@
 
   </head>
   <body>
-    <h2 id="helloHeader">Exploring SPARQL endpoint </h2>
-    <div id="visContainer">
-      <svg id="visSvg" xmlns="http://www.w3.org/2000/svg" width="1200" height="800">
-        <defs>
-          <marker id="arrowhead" markerWidth="10" markerHeight="7"
-          refX="0" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" />
-          </marker>
-        </defs>
-      </svg>
+    <div class="container-fluid d-flex flex-column vh-100">
+    <div class="row p-2" id="header" style="background-color: steelblue;">
+      <h3 id="helloHeader">Exploring SPARQL endpoint </h3>
     </div>
+    <div class="row flex-fill">
+      <div class="col-9" id="visContainer">
+        <svg id="visSvg" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+          <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7"
+            refX="0" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7"/>
+          </marker>
+      </defs>
+        </svg>
+      </div>
+      <div class="col-3 flex-column" style="background-color: rgb(70, 164, 180);">
+        <div id="detailView" class="container-fluid p-2 my-2 border border-1 rounded">
+          <h4 class="title">Detail</h4>
+          <div class="default">
+            Click on an object to show more information.
+          </div>
+          <div class="detailContainer text-wrap text-break"></div>
+        </div>
+        <div class="container-fluid p-2 my-2 border border-1 rounded">
+          <h4>Title</h4>
+          <div>
+            Some short description of the object.
+          </div>
+        </div>
+        <div class="container-fluid p-2 my-2 border border-1 rounded">
+          <h4>Request</h4>
+          <div>
+            Request additional endpoint information.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
 
     <script src="sparql.js"></script>
     <script src="force.js"></script>
+    <script src="interface.js"></script>
   </body>
 </html>
