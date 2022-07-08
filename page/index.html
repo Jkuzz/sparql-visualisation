@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="bootstrap-5.2.0\css\bootstrap.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+    <script src="bootstrap-5.2.0\js\bootstrap.min.js"></script>
+    <script src="d3\dist\d3.js"></script>
+
+  </head>
+  <body>
+    <h2 id="helloHeader">Exploring SPARQL endpoint </h2>
+    <div id="visContainer">
+      <svg id="visSvg" xmlns="http://www.w3.org/2000/svg" width="1200" height="800">
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7"
+          refX="0" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" />
+          </marker>
+        </defs>
+      </svg>
+    </div>
+
+    <script src="sparql.js"></script>
+    <script src="force.js"></script>
+  </body>
+</html>
