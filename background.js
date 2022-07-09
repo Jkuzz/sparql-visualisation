@@ -14,7 +14,7 @@ function openTab(request, sender, sendResponse) {
   pageUrl += `?endpoint=${encodeURIComponent(request.endpoint)}`;
   chrome.tabs.create({
     url: pageUrl,
-    selected: false,
+    selected: true,
   });
 }
 

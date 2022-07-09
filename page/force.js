@@ -62,12 +62,13 @@ svg.call(drag(simulation))
 
 svg.call(
   d3.zoom().on("zoom", (event) => {
-    console.log(event.transform)
+    // console.log(event.transform)
     let originalTransform = svgWrapper.attr("transform")
     svgWrapper.attr("transform", zoomTransformString(originalTransform, event.transform.k))
-    console.log(svgWrapper.attr("transform"))
+    // console.log(svgWrapper.attr("transform"))
   })
 )
+
 
 function ticked() {
   node
@@ -78,29 +79,32 @@ function ticked() {
 }
 
 
-function makeLinkPath(source, target) {
-  let direction = {'x': target.x - source.x, 'y': target.y - source.y}
-  let normalisedDir = normaliseVector(direction)
+function makeLinkPath(sourceNode, targetNode) {
+  let source = new p5.Vector(sourceNode.x, sourceNode.y)
+  let target = new p5.Vector(targetNode.x, targetNode.y)
+  let targetEdgeIntersect = calculatePathToCircleEdge(source, target, getClassRadius(targetNode))
+  let normalisedDir = p5.Vector.sub(target, source).normalize()
 
-  let curveMidOffset = 150
+  // Place the quadratic bezier midpoint
+  // halfway between source and target, orthogonally to direction by curveMidOffset
+  let curveMidOffset = 160
+  let midpoint = new p5.Vector(
+    targetEdgeIntersect.x + source.x + normalisedDir.y * curveMidOffset,
+    targetEdgeIntersect.y + source.y - normalisedDir.x * curveMidOffset
+  ).div(2)
 
-  let midpointX = (target.x + source.x + normalisedDir.y * curveMidOffset) / 2
-  let midpointY = (target.y + source.y - normalisedDir.x * curveMidOffset) / 2
   return `
   M ${source.x} ${source.y}
-  Q ${midpointX} ${midpointY} ${target.x} ${target.y}
+  Q ${midpoint.x} ${midpoint.y} ${targetEdgeIntersect.x} ${targetEdgeIntersect.y}
   `
 }
 
 
-function normaliseVector(vector) {
-  let magnitude = vectorMagnitude(vector)
-  return {'x': vector.x / magnitude, 'y': vector.y / magnitude}
-}
-
-
-function vectorMagnitude(vector) {
-  return Math.sqrt(vector.x * vector.x + vector.y * vector.y)
+function calculatePathToCircleEdge(source, target, targetRadius) {
+  let direction = p5.Vector.sub(target, source)
+    .setMag(targetRadius + 25)  // 25 to accommodate for the arrow
+    .rotate(180)
+  return p5.Vector.add(target, direction)
 }
 
 
@@ -124,7 +128,9 @@ function updateForceVis(visData) {
         .attr('r', d => getClassRadius(d))
         .call((node) => node.append("title").text((d) => d.label))
         .call(drag(simulation))
-        .on('click', (d, i) => displayInfo(d, i))
+        .on('click', (event, node) => {
+          displayInfo(event, node, getNodeLinks(node.id, link.data()))
+        })
       nodeContainer.append("text")
         .text((d) => d.label)
         .classed('nodeLabel', true)
@@ -148,6 +154,17 @@ function updateForceVis(visData) {
 }
 
 
+/**
+ * Finds all outgoing links for the chosen node
+ * @param {URI} nodeId
+ * @param {Array} links
+ * @returns {Array}
+ */
+function getNodeLinks(nodeId, links) {
+  return links.filter(link => link.source.id == nodeId)
+}
+
+
 function addNode(nodeToAdd) {
 
 }
@@ -157,7 +174,9 @@ function addLink(linkToAdd) {
 
 }
 
+
 var draggingBackground = false;
+
 function drag(simulation) {
   function dragstarted(event) {
     draggingBackground = 'id' in event.sourceEvent.target && event.sourceEvent.target.id == "visSvg"
