@@ -46,7 +46,7 @@ var linkLabel = svgWrapper
 
 const simulation = d3
   .forceSimulation()
-  .force("charge", d3.forceManyBody().strength(-2000))
+  .force("charge", d3.forceManyBody().strength(-400))
   .force('collide', d3.forceCollide().radius(d => getClassRadius(d)))
   .force("link",
     d3.forceLink()
@@ -54,18 +54,16 @@ const simulation = d3
       .distance(200)
       .strength(0.1)
   )
-  .force("x", d3.forceX(width / 2))
-  .force("y", d3.forceY(height / 2))
+  .force("x", d3.forceX(width / 2).strength(0.02))
+  .force("y", d3.forceY(height / 2).strength(0.02))
   .on("tick", ticked);
 
 svg.call(drag(simulation))
 
 svg.call(
   d3.zoom().on("zoom", (event) => {
-    // console.log(event.transform)
     let originalTransform = svgWrapper.attr("transform")
     svgWrapper.attr("transform", zoomTransformString(originalTransform, event.transform.k))
-    // console.log(svgWrapper.attr("transform"))
   })
 )
 
@@ -87,7 +85,7 @@ function makeLinkPath(sourceNode, targetNode) {
 
   // Place the quadratic bezier midpoint
   // halfway between source and target, orthogonally to direction by curveMidOffset
-  let curveMidOffset = 160
+  let curveMidOffset = 130
   let midpoint = new p5.Vector(
     targetEdgeIntersect.x + source.x + normalisedDir.y * curveMidOffset,
     targetEdgeIntersect.y + source.y - normalisedDir.x * curveMidOffset
@@ -102,15 +100,15 @@ function makeLinkPath(sourceNode, targetNode) {
 
 function calculatePathToCircleEdge(source, target, targetRadius) {
   let direction = p5.Vector.sub(target, source)
-    .setMag(targetRadius + 25)  // 25 to accommodate for the arrow
+    .setMag(targetRadius + 13)  // increase radius to accommodate for the arrow
     .rotate(180)
   return p5.Vector.add(target, direction)
 }
 
 
 function updateForceVis(visData) {
-  var linksData = 'links' in visData ? visData.links : []
-  var classesData = 'classes' in visData ? visData.classes : []
+  var linksData = 'links' in visData ? Object.values(visData.links) : []
+  var classesData = 'classes' in visData ? Object.values(visData.classes) : []
 
   // Make a shallow copy to protect against mutation, while
   // recycling old nodes to preserve position and velocity.
@@ -129,7 +127,10 @@ function updateForceVis(visData) {
         .call((node) => node.append("title").text((d) => d.label))
         .call(drag(simulation))
         .on('click', (event, node) => {
-          displayInfo(event, node, getNodeLinks(node.id, link.data()))
+          console.log(event.target.parentNode)
+          event.target.parentNode.classList.add('activeNode')
+
+          displayNodeInfo(event, node, getNodeLinks(node.id, link.data()))
         })
       nodeContainer.append("text")
         .text((d) => d.label)

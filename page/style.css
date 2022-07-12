@@ -1,3 +1,15 @@
 .nodeLabel {
     font: bold 14px sans-serif;
 }
+
+.activeNode circle {
+    filter: brightness(120%) hue-rotate(-80deg) !important;
+}
+
+.activeNode circle:hover {
+    filter: brightness(140%) hue-rotate(-80deg) !important;
+}
+
+.node circle:hover {
+    filter: brightness(120%);
+}

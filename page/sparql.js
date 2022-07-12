@@ -70,43 +70,30 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 
+var queryHandler
+var queriedClasses = 0;
+
+
 function main() {
     const urlParams = new URLSearchParams(window.location.search);
     let endpointURL = urlParams.get('endpoint');
     document.getElementById("helloHeader").textContent += endpointURL;
+    queryHandler = new QueryHandler()
 
-    queryEndpoint(endpointURL, getClassesQuery(0))
-        .then(response => handleClassesQuery(response))
-        .then(visData => makeVisGraph(visData))
-        .then(visData => queryClassProperties(visData))
-        .then(visData => testAddLinks(visData))
+    // queryEndpoint(endpointURL, getClassesQuery(0))
+    devQueryClasses(5, queriedClasses)
+        .then(response => {
+            queriedClasses += response.length
+            queryHandler.handleClassesQuery(response)
+        })
+
 }
+
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function testAddLinks(visData) {
-    await sleep(3000)
-    visData.links.push({
-        'source': "http://www.w3.org/ns/dcat#Distribution",
-        'target': "http://www.w3.org/ns/dcat#Dataset",
-        'id': "http://www.example.com/testProperty",
-        'label': "testProperty",
-        'count': 1000
-    })
-    makeVisGraph(visData)
-    await sleep(3000)
-    visData.links.push({
-        'source': "http://www.w3.org/ns/dcat#Dataset",
-        'target': "http://purl.org/linked-data/cube#Observation",
-        'id': "http://www.example.com/testProperty",
-        'label': "testProperty",
-        'count': 10000
-    })
-    makeVisGraph(visData)
-    return visData
-}
 
 async function queryClassProperties(visData) {
     if(!visData.hasOwnProperty('links')) {
@@ -127,25 +114,52 @@ async function queryClassProperties(visData) {
         'label': "computedOn",
         'count': 481614
     })
-    return makeVisGraph(visData);
+    return updateVisGraph(visData);
 }
 
 
-/**
- * Format class query response
- * @param {JSON} response
- * @returns Object of processed response items
- */
-async function handleClassesQuery(response) {
-    let knownClasses = [];
-    response.results.bindings.forEach(element => {
-        knownClasses.push({
-            'id': element.class.value,
-            'count': element.instanceCount.value,
-            'label': getLabelFromURI(element.class.value)
-        });
-    });
-    return {'classes': knownClasses};
+class QueryHandler {
+    visData = {
+        'classes': {},
+        'links': [],
+    }
+
+
+    /**
+     * Format class query response
+     * @param {JSON} response
+     * @returns Object of processed response items
+     */
+    handleClassesQuery = function(response) {
+        response.forEach(element => {
+            let newClass = {
+                'id': element.class.value,
+                'count': element.instanceCount.value,
+                'label': getLabelFromURI(element.class.value)
+            }
+            // request links to existing classes before new one is added
+            this.requestNewLinks(newClass)
+            this.visData['classes'][element.class.value] = newClass
+        })
+        updateVisGraph(this.visData)
+    }
+
+
+    handleLinksQuery = function(response) {
+        this.visData.links.push(...response)
+        updateVisGraph(this.visData)
+    }
+
+
+    requestNewLinks = function(newClass) {
+        let classesCopy = {...this.visData.classes}
+        for(let cls in classesCopy) {
+            devQueryLink(newClass.id, cls)
+                .then(r => this.handleLinksQuery(r))
+            devQueryLink(cls, newClass.id)
+                .then(r => this.handleLinksQuery(r))
+        }
+    }
 }
 
 
@@ -159,14 +173,12 @@ async function queryEndpoint(endpoint, query) {
     let queryURL = endpoint + '?query=' + encodeURIComponent(query);
     queryURL += '&format=application%2Fsparql-results%2Bjson';
 
-    return fetch('testresult.json')
+    return fetch(queryURL)
         .then(data=>data.json())
-    // return fetch(queryURL)
-    //     .then(data=>data.json())
 }
 
 
-async function makeVisGraph(visData) {
+async function updateVisGraph(visData) {
     let copyVisData = {...visData}
     updateForceVis(copyVisData)
     return visData

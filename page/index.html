@@ -19,29 +19,32 @@
       <div class="col-9" id="visContainer">
         <svg id="visSvg" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
           <defs>
-            <marker id="arrowhead" markerWidth="10" markerHeight="7"
-            refX="0" refY="3.5" orient="auto">
-              <polygon points="0 0, 10 3.5, 0 7"/>
+            <marker id="arrowhead" markerWidth="5" markerHeight="4"
+            refX="0" refY="2" orient="auto">
+              <polygon points="0 0, 5 2, 0 4"/>
            </marker>
           </defs>
         </svg>
       </div>
-      <div class="col-3 flex-column" style="background-color: rgb(70, 164, 180);">
-        <div id="detailView" class="container-fluid p-2 my-2 border border-1 rounded">
+      <div class="col-3 flex-column" style="background-color: rgb(88, 233, 209);">
+        <div id="detailView" class="container-fluid p-2 my-2 border border-1 border-dark rounded">
           <h4 class="title">Detail</h4>
           <div class="default">
             Click on an object to show more information.
           </div>
-          <div class="detailContainer"></div>
+          <div class="container"></div>
         </div>
-        <div class="container-fluid p-2 my-2 border border-1 rounded">
-          <h4>Node Links</h4>
-          <div>
+        <div id="linksView" class="container-fluid p-2 my-2 border border-1 border-dark rounded">
+          <h4 class="title">Node Links</h4>
+          <div class="default">
             Select a node to see its outgoing links
           </div>
+          <div class="container">
+
+          </div>
         </div>
-        <div class="container-fluid p-2 my-2 border border-1 rounded">
-          <h4>Request</h4>
+        <div class="container-fluid p-2 my-2 border border-1 border-dark rounded">
+          <h4 class="title">Request</h4>
           <div>
             Request additional endpoint information.
             <label for="classUriInput">Request specific class:</label>
@@ -59,5 +62,6 @@
     <script src="sparql.js"></script>
     <script src="force.js"></script>
     <script src="interface.js"></script>
+    <script src="dev.js"></script>
   </body>
 </html>
