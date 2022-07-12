@@ -37,7 +37,7 @@ function getNodeLinks(nodeId, links) {
 
 function calculatePathToCircleEdge(source, target, targetRadius) {
   let direction = p5.Vector.sub(target, source)
-    .setMag(targetRadius + 13) // increase radius to accommodate for the arrow
+    .setMag(targetRadius + 20) // increase radius to accommodate for the arrow
     .rotate(180);
   return p5.Vector.add(target, direction);
 }
@@ -64,4 +64,55 @@ function makeLinkPath(sourceNode, targetNode) {
     M ${source.x} ${source.y}
     Q ${midpoint.x} ${midpoint.y} ${targetEdgeIntersect.x} ${targetEdgeIntersect.y}
     `;
+}
+
+class NodeClickManager {
+  lastClickedNode = null;
+  lastClickedPath = null
+
+  clickNode = (clickedNode, links) => {
+    if(this.lastClickedNode != null) {
+      this.lastClickedNode.classList.remove('activeNode')
+    }
+    this.lastClickedNode = clickedNode
+    if(clickedNode == null) {
+      return // Only deselect was requested
+    }
+    this.clickPath(null, null, links)
+    clickedNode.classList.add('activeNode')
+  }
+
+  clickPath = (event, path, allLinks) => {
+    if(this.lastClickedPath != null) {
+      this.lastClickedPath.removeAttribute('clicked')
+      this.lastClickedPath.removeAttribute('stroke-width')
+      this.lastClickedPath.removeAttribute('stroke')
+      this.lastClickedPath.removeAttribute('marker-end')
+    }
+    allLinks  // Reset all links first
+      .classed('highlight', false)
+      .attr('stroke', null)
+      .attr('marker-end', null)
+
+    if(event == null) {
+      this.lastClickedPath = null
+      return // Only deselect
+    }
+    this.lastClickedPath = event.target
+
+    this.clickNode(null)
+    allLinks  // Secondary highlight those with same URI as clicked path
+      .filter(d => d.id == path.id)
+      .classed('highlight', true)  // This is to not unclolour on mouseout
+      .attr('stroke', secondaryPathColour)
+      .attr('marker-end', 'url(#arrowHeadSecondary)')
+
+    // Main highlight clicked path last
+    event.target.setAttribute('clicked', '')
+    event.target.setAttribute('stroke', mainPathColour)
+    event.target.setAttribute('stroke-width', 8)
+    event.target.setAttribute('marker-end', 'url(#arrowHeadMain)')
+
+    displayPathInfo(path)
+  }
 }

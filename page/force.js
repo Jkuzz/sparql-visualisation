@@ -13,12 +13,11 @@ const svgWrapper = svg.append('g')
 var link = svgWrapper
   .append("g")
     .attr('id', 'linkContainer')
-    .attr("stroke", "#999")
     .attr("stroke-opacity", 1)
     .attr('stroke', 'black')
-    .attr("stroke-width", 3)
-    .attr('fill', 'transparent')
-    .attr('marker-end', 'url(#arrowhead)')
+    .attr("stroke-width", 5)
+    .attr('marker-end', 'url(#arrowHead)')
+    .attr('fill', 'none')
   .selectAll("path");
 
 
@@ -71,6 +70,12 @@ function ticked() {
     .attr('d', d => makeLinkPath(d.source, d.target))
 }
 
+const mainPathColour = 'hsl(336, 100%, 55%)'
+const secondaryPathColour = 'hsl(336, 100%, 75%)'
+document.querySelector('#arrowHeadMain').setAttribute('fill', mainPathColour)
+document.querySelector('#arrowHeadSecondary').setAttribute('fill', secondaryPathColour)
+
+var nodeClickManager = new NodeClickManager()
 
 function updateForceVis(visData) {
   var linksData = 'links' in visData ? Object.values(visData.links) : []
@@ -93,10 +98,8 @@ function updateForceVis(visData) {
         .call((node) => node.append("title").text((d) => d.label))
         .call(drag(simulation))
         .on('click', (event, node) => {
-          console.log(event.target.parentNode)
-          event.target.parentNode.classList.add('activeNode')
-
-          displayNodeInfo(event, node, getNodeLinks(node.id, link.data()))
+          nodeClickManager.clickNode(event.target.parentNode, link)
+          displayNodeInfo(node, getNodeLinks(node.id, link.data()))
         })
       nodeContainer.append("text")
         .text((d) => d.label)
@@ -111,7 +114,23 @@ function updateForceVis(visData) {
 
   link = link
     .data(linksData, (d) => [d.source, d.target])
-    .join(enter => enter.append('path').attr('pointer-events', 'none'));
+    .join(enter => enter.append('path')
+      .on('click', (event, path) => {
+        nodeClickManager.clickPath(event, path, link)
+      })
+      .on('mouseover', (event, path) => {
+        if(!event.target.hasAttribute('clicked')) {
+          event.target.setAttribute('stroke', secondaryPathColour)
+          event.target.setAttribute('marker-end', 'url(#arrowHeadSecondary)')
+        }
+      })
+      .on('mouseout', (event, path) => {
+        if(!event.target.hasAttribute('clicked') && !event.target.classList.contains('highlight')) {
+          event.target.setAttribute('stroke', 'black')
+          event.target.setAttribute('marker-end', 'url(#arrowHead)')
+        }
+      })
+    );
 
   simulation.nodes(classesData);
   simulation.force("link").links(linksData);

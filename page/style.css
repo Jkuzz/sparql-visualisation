@@ -13,3 +13,7 @@
 .node circle:hover {
     filter: brightness(120%);
 }
+
+#linkContainer path:hover {
+    filter: brightness(120%);
+}

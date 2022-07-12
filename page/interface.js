@@ -33,9 +33,13 @@ const displayProperties = {
 }
 
 
-function displayNodeInfo(event, node, links) {
+function displayNodeInfo(node, links) {
     displayNodeDetails(node)
     displayLinks(links)
+}
+
+function displayPathInfo(link) {
+    displayNodeDetails(link)
 }
 
 
