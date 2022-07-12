@@ -4,19 +4,11 @@ const svg = d3
 let width = svg.style('width').slice(0, -2)
 let height = svg.style('height').slice(0, -2)
 
-// const resize_ob = new ResizeObserver(entries => {
-  // 	let rect = entries[0].contentRect;
-
-  // 	width = rect.width;
-  // 	height = rect.height;
-  // });
-
-  // start observing for resize
-  // resize_ob.observe(document.querySelector("#demo-textarea"));
 
 const svgWrapper = svg.append('g')
   .classed('wrapper', true)
   .attr('transform', 'translate(0, 0) scale(1)')
+
 
 var link = svgWrapper
   .append("g")
@@ -29,6 +21,7 @@ var link = svgWrapper
     .attr('marker-end', 'url(#arrowhead)')
   .selectAll("path");
 
+
 var node = svgWrapper
   .append("g")
     .attr('id', 'nodeContainer')
@@ -36,6 +29,7 @@ var node = svgWrapper
     .attr("stroke-width", 1.5)
     .attr("fill", "#77b")
   .selectAll(".node");
+
 
 var linkLabel = svgWrapper
   .append("g")
@@ -58,6 +52,7 @@ const simulation = d3
   .force("y", d3.forceY(height / 2).strength(0.02))
   .on("tick", ticked);
 
+
 svg.call(drag(simulation))
 
 svg.call(
@@ -74,35 +69,6 @@ function ticked() {
 
   link
     .attr('d', d => makeLinkPath(d.source, d.target))
-}
-
-
-function makeLinkPath(sourceNode, targetNode) {
-  let source = new p5.Vector(sourceNode.x, sourceNode.y)
-  let target = new p5.Vector(targetNode.x, targetNode.y)
-  let targetEdgeIntersect = calculatePathToCircleEdge(source, target, getClassRadius(targetNode))
-  let normalisedDir = p5.Vector.sub(target, source).normalize()
-
-  // Place the quadratic bezier midpoint
-  // halfway between source and target, orthogonally to direction by curveMidOffset
-  let curveMidOffset = 130
-  let midpoint = new p5.Vector(
-    targetEdgeIntersect.x + source.x + normalisedDir.y * curveMidOffset,
-    targetEdgeIntersect.y + source.y - normalisedDir.x * curveMidOffset
-  ).div(2)
-
-  return `
-  M ${source.x} ${source.y}
-  Q ${midpoint.x} ${midpoint.y} ${targetEdgeIntersect.x} ${targetEdgeIntersect.y}
-  `
-}
-
-
-function calculatePathToCircleEdge(source, target, targetRadius) {
-  let direction = p5.Vector.sub(target, source)
-    .setMag(targetRadius + 13)  // increase radius to accommodate for the arrow
-    .rotate(180)
-  return p5.Vector.add(target, direction)
 }
 
 
@@ -143,7 +109,6 @@ function updateForceVis(visData) {
       return nodeContainer
     });
 
-
   link = link
     .data(linksData, (d) => [d.source, d.target])
     .join(enter => enter.append('path').attr('pointer-events', 'none'));
@@ -152,27 +117,6 @@ function updateForceVis(visData) {
   simulation.force("link").links(linksData);
   simulation.alpha(1).restart().tick();
   ticked(); // render now!
-}
-
-
-/**
- * Finds all outgoing links for the chosen node
- * @param {URI} nodeId
- * @param {Array} links
- * @returns {Array}
- */
-function getNodeLinks(nodeId, links) {
-  return links.filter(link => link.source.id == nodeId)
-}
-
-
-function addNode(nodeToAdd) {
-
-}
-
-
-function addLink(linkToAdd) {
-
 }
 
 
@@ -210,34 +154,4 @@ function drag(simulation) {
     .on("start", dragstarted)
     .on("drag", dragged)
     .on("end", dragended);
-}
-
-
-function getClassRadius(cls) {
-  return (Math.log(cls.count) / Math.log(10)) * 8
-}
-
-function moveTransformString(transform, dx, dy) {
-  let translatePos = transform.indexOf("translate(") + 10
-  let translateEnd = transform.indexOf(")", translatePos) // bind position to match correct ()
-  let original = transform.substring(
-    translatePos, translateEnd
-  ).split(",");
-  let newX = Number(original[0]) + dx
-  let newY = Number(original[1]) + dy
-  let newTransform = transform.replace(
-    transform.substring(translatePos - 10, translateEnd + 1),
-    `translate(${newX}, ${newY})`
-  )
-  return newTransform
-}
-
-function zoomTransformString(transform, newScale) {
-  let scalePos = transform.indexOf("scale(") + 6
-  let scaleEnd = transform.indexOf(")", scalePos) // bind position to match correct ()
-  let newTransform = transform.replace(
-    transform.substring(scalePos - 6, scaleEnd + 1),
-    `scale(${newScale})`
-  )
-  return newTransform
 }
