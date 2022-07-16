@@ -62,8 +62,7 @@ function makeLinkPath(sourceNode, targetNode) {
 
   return `
     M ${source.x} ${source.y}
-    Q ${midpoint.x} ${midpoint.y} ${targetEdgeIntersect.x} ${targetEdgeIntersect.y}
-    `;
+    Q ${midpoint.x} ${midpoint.y} ${targetEdgeIntersect.x} ${targetEdgeIntersect.y}`;
 }
 
 class NodeClickManager {
@@ -84,7 +83,7 @@ class NodeClickManager {
 
   clickPath = (event, path, allLinks) => {
     if(this.lastClickedPath != null) {
-      this.lastClickedPath.removeAttribute('clicked')
+      this.lastClickedPath.classList.remove('clicked')
       this.lastClickedPath.removeAttribute('stroke-width')
       this.lastClickedPath.removeAttribute('stroke')
       this.lastClickedPath.removeAttribute('marker-end')
@@ -108,7 +107,7 @@ class NodeClickManager {
       .attr('marker-end', 'url(#arrowHeadSecondary)')
 
     // Main highlight clicked path last
-    event.target.setAttribute('clicked', '')
+    event.target.classList.add('clicked')
     event.target.setAttribute('stroke', mainPathColour)
     event.target.setAttribute('stroke-width', 8)
     event.target.setAttribute('marker-end', 'url(#arrowHeadMain)')

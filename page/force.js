@@ -32,6 +32,7 @@ var node = svgWrapper
 
 var linkLabel = svgWrapper
   .append("g")
+    .attr('id', 'linkLabelContainer')
     .attr("stroke", "#999")
     .attr("stroke-opacity", 0.6)
   .selectAll("rect");
@@ -112,24 +113,52 @@ function updateForceVis(visData) {
       return nodeContainer
     });
 
+  let clickedLink = d3.select('#linkContainer path.clicked').data()
+
+  // linkLabel = linkLabel
+  //   .data(linksData)
+  //   .join(enter => {
+  //     enter.append('rect')
+  //       // .attr('fill', 'red')
+  //       // .call(drag(simulation))
+  //     return enter
+  //   })
+
   link = link
-    .data(linksData, (d) => [d.source, d.target])
-    .join(enter => enter.append('path')
-      .on('click', (event, path) => {
-        nodeClickManager.clickPath(event, path, link)
-      })
-      .on('mouseover', (event, path) => {
-        if(!event.target.hasAttribute('clicked')) {
-          event.target.setAttribute('stroke', secondaryPathColour)
-          event.target.setAttribute('marker-end', 'url(#arrowHeadSecondary)')
-        }
-      })
-      .on('mouseout', (event, path) => {
-        if(!event.target.hasAttribute('clicked') && !event.target.classList.contains('highlight')) {
-          event.target.setAttribute('stroke', 'black')
-          event.target.setAttribute('marker-end', 'url(#arrowHead)')
-        }
-      })
+    .data(linksData)
+    .join(enter =>
+      enter.append('path')
+        .on('click', (event, path) => {
+          nodeClickManager.clickPath(event, path, link)
+        })
+        .on('mouseover', (event, path) => {
+          if(!event.target.classList.contains('clicked')) {
+            event.target.setAttribute('stroke', secondaryPathColour)
+            event.target.setAttribute('marker-end', 'url(#arrowHeadSecondary)')
+          }
+        })
+        .on('mouseout', (event, path) => {
+          if(!event.target.classList.contains('clicked') && !event.target.classList.contains('highlight')) {
+            event.target.setAttribute('stroke', 'black')
+            event.target.setAttribute('marker-end', 'url(#arrowHead)')
+          }
+        })
+        .attr('stroke', d => {
+          if(clickedLink.length > 0 && d.id == clickedLink[0].id) {
+            return 'hsl(336, 100%, 75%)'
+          }
+          return 'black'
+        })
+        .attr('marker-end', d => {
+          if(clickedLink.length > 0 && d.id == clickedLink[0].id) {
+            return 'url(#arrowHeadSecondary)'
+          }
+          return ''
+        })
+        .classed('highlight', d => {
+          return (clickedLink.length > 0 && d.id == clickedLink[0].id)
+        })
+
     );
 
   simulation.nodes(classesData);

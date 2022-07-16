@@ -38,6 +38,7 @@ function displayNodeInfo(node, links) {
     displayLinks(links)
 }
 
+
 function displayPathInfo(link) {
     displayNodeDetails(link)
 }
