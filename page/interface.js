@@ -13,7 +13,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
 const displayProperties = {
-    'id': {
+    'uri': {
         label: 'URI:',
         getContent: (value) => {
             let el = document.createElement('a')

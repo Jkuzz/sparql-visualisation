@@ -40,13 +40,13 @@ var linkLabel = svgWrapper
 
 const simulation = d3
   .forceSimulation()
-  .force("charge", d3.forceManyBody().strength(-400))
+  .force("charge", d3.forceManyBody().strength(-800))
   .force('collide', d3.forceCollide().radius(d => getClassRadius(d)))
   .force("link",
     d3.forceLink()
       .id((d) => d.id)
       .distance(200)
-      .strength(0.1)
+      .strength(0.2)
   )
   .force("x", d3.forceX(width / 2).strength(0.02))
   .force("y", d3.forceY(height / 2).strength(0.02))
@@ -71,7 +71,7 @@ function ticked() {
     .attr('transform', d => `translate(${d.x}, ${d.y})`)
 
   link
-    .attr('d', d => makeLinkPath(d.source, d.target))
+    .attr('d', d => makeLinkPath(d, node.data()))
 }
 
 const mainPathColour = 'hsl(336, 100%, 55%)'
@@ -140,7 +140,6 @@ function updateForceVis(visData) {
         .attr("fill", "#000")
         .attr('pointer-events', 'none')
         .attr('y', '0')
-
       let textBBox = text.node().getBBox()
 
       linkContainer.insert('rect', 'text')  // Insert before text!
@@ -149,6 +148,9 @@ function updateForceVis(visData) {
         .attr('x', (textBBox.width + 10) / -2)
         .attr('y', (textBBox.height + 10) / -2)
         .call(drag(simulation))
+        .on('click', (event, path) => {
+          nodeClickManager.clickPath(event, path, link)
+        })
 
       return linkContainer
     })
@@ -174,19 +176,19 @@ function updateForceVis(visData) {
           }
         })
         .attr('stroke', d => {
-          if(clickedLink.length > 0 && d.id == clickedLink[0].id) {
+          if(clickedLink.length > 0 && d.uri == clickedLink[0].uri) {
             return 'hsl(336, 100%, 75%)'
           }
           return 'black'
         })
         .attr('marker-end', d => {
-          if(clickedLink.length > 0 && d.id == clickedLink[0].id) {
+          if(clickedLink.length > 0 && d.uri == clickedLink[0].uri) {
             return 'url(#arrowHeadSecondary)'
           }
           return ''
         })
         .classed('highlight', d => {
-          return (clickedLink.length > 0 && d.id == clickedLink[0].id)
+          return (clickedLink.length > 0 && d.uri == clickedLink[0].uri)
         })
 
     );
@@ -194,7 +196,13 @@ function updateForceVis(visData) {
   var simulationNodes = [...classesData].concat([...linksData])
   simulation.nodes(simulationNodes);
 
-  simulation.force("link").links(linksData);
+  let processedLinks = []
+  linksData.forEach(l => {
+    processedLinks.push({'source': l.source, 'target': l.id})
+    processedLinks.push({'source': l.id, 'target': l.target})
+  })
+
+  simulation.force("link").links(processedLinks);
   simulation.alpha(1).restart().tick();
   ticked(); // render now!
 }

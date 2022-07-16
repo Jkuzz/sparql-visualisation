@@ -133,6 +133,7 @@ class QueryHandler {
     handleClassesQuery = function(response) {
         response.forEach(element => {
             let newClass = {
+                'uri': element.class.value,
                 'id': element.class.value,
                 'count': element.instanceCount.value,
                 'label': getLabelFromURI(element.class.value)

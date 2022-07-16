@@ -10,10 +10,7 @@
     filter: brightness(140%) hue-rotate(-80deg) !important;
 }
 
-.node circle:hover {
-    filter: brightness(120%);
-}
-
-#linkContainer path:hover {
+.node circle:hover,
+#linkLabelContainer .linkLabel rect:hover {
     filter: brightness(120%);
 }

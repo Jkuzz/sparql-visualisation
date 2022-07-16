@@ -36,37 +36,46 @@ function getNodeLinks(nodeId, links) {
 }
 
 function calculatePathToCircleEdge(source, target, targetRadius) {
-  let direction = p5.Vector.sub(target, source)
+  let direction = p5.Vector.sub(source, target)
     .setMag(targetRadius + 20) // increase radius to accommodate for the arrow
-    .rotate(180);
-  return p5.Vector.add(target, direction);
+  return p5.Vector.add(target, direction)
 }
 
-function makeLinkPath(sourceNode, targetNode) {
-  let source = new p5.Vector(sourceNode.x, sourceNode.y);
-  let target = new p5.Vector(targetNode.x, targetNode.y);
+/**
+ * Calculate bezier curve representing path between two nodes, label-aware
+ * @param {*} link data item of the link label
+ * @param {*} nodes nodes of simulation to find proper source and target in
+ * @returns {String} representation of svg path curve
+ */
+function makeLinkPath(link, nodes) {
+  let sourceNode = nodes.filter(n => n.id == link.source)[0]
+  let targetNode = nodes.filter(n => n.id == link.target)[0]
+
+  let source = new p5.Vector(sourceNode.x, sourceNode.y)
+  let target = new p5.Vector(targetNode.x, targetNode.y)
+  let label = new p5.Vector(link.x, link.y);
   let targetEdgeIntersect = calculatePathToCircleEdge(
-    source,
+    label,
     target,
     getClassRadius(targetNode)
-  );
-  let normalisedDir = p5.Vector.sub(target, source).normalize();
+  )
 
-  // Place the quadratic bezier midpoint
-  // halfway between source and target, orthogonally to direction by curveMidOffset
-  let curveMidOffset = 130;
+  // Place the quadratic bezier midpoint so that label is on the path
+  // This means it has to be twice as far from midpoint as label is from midpoint
   let midpoint = new p5.Vector(
-    targetEdgeIntersect.x + source.x + normalisedDir.y * curveMidOffset,
-    targetEdgeIntersect.y + source.y - normalisedDir.x * curveMidOffset
-  ).div(2);
+    targetEdgeIntersect.x + source.x,
+    targetEdgeIntersect.y + source.y
+  ).div(2)
+  let bezierPoint =  midpoint.add(label.sub(midpoint).mult(2))
 
   return `
     M ${source.x} ${source.y}
-    Q ${midpoint.x} ${midpoint.y} ${targetEdgeIntersect.x} ${targetEdgeIntersect.y}`;
+    Q ${bezierPoint.x} ${bezierPoint.y} ${targetEdgeIntersect.x} ${targetEdgeIntersect.y}`
 }
 
+
 class NodeClickManager {
-  lastClickedNode = null;
+  lastClickedNode = null
   lastClickedPath = null
 
   clickNode = (clickedNode, links) => {
@@ -77,11 +86,19 @@ class NodeClickManager {
     if(clickedNode == null) {
       return // Only deselect was requested
     }
-    this.clickPath(null, null, links)
+    this.clickPath(null, null, links)  // deselect clicked link
     clickedNode.classList.add('activeNode')
   }
 
   clickPath = (event, path, allLinks) => {
+    // If clicked path label, get the path first
+    let target
+    if(event.target.nodeName != 'path') {
+      target = allLinks.filter(d => d.id == path.id).node()
+    } else {
+      target = event.target
+    }
+
     if(this.lastClickedPath != null) {
       this.lastClickedPath.classList.remove('clicked')
       this.lastClickedPath.removeAttribute('stroke-width')
@@ -97,20 +114,20 @@ class NodeClickManager {
       this.lastClickedPath = null
       return // Only deselect
     }
-    this.lastClickedPath = event.target
+    this.lastClickedPath = target
 
-    this.clickNode(null)
+    this.clickNode(null)  // deselect clicked node
     allLinks  // Secondary highlight those with same URI as clicked path
-      .filter(d => d.id == path.id)
+      .filter(d => d.uri == path.uri)
       .classed('highlight', true)  // This is to not unclolour on mouseout
       .attr('stroke', secondaryPathColour)
       .attr('marker-end', 'url(#arrowHeadSecondary)')
 
     // Main highlight clicked path last
-    event.target.classList.add('clicked')
-    event.target.setAttribute('stroke', mainPathColour)
-    event.target.setAttribute('stroke-width', 8)
-    event.target.setAttribute('marker-end', 'url(#arrowHeadMain)')
+    target.classList.add('clicked')
+    target.setAttribute('stroke', mainPathColour)
+    target.setAttribute('stroke-width', 8)
+    target.setAttribute('marker-end', 'url(#arrowHeadMain)')
 
     displayPathInfo(path)
   }
