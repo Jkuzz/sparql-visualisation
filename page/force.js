@@ -34,7 +34,7 @@ var linkLabel = svgWrapper
   .append("g")
     .attr('id', 'linkLabelContainer')
     .attr("stroke", "#999")
-    .attr("stroke-opacity", 0.6)
+    .attr('fill', 'steelblue')
   .selectAll("rect");
 
 
@@ -65,7 +65,10 @@ svg.call(
 
 function ticked() {
   node
-    .attr('transform', (d) =>`translate(${d.x}, ${d.y})`)
+    .attr('transform', d => `translate(${d.x}, ${d.y})`)
+
+  linkLabel
+    .attr('transform', d => `translate(${d.x}, ${d.y})`)
 
   link
     .attr('d', d => makeLinkPath(d.source, d.target))
@@ -84,19 +87,24 @@ function updateForceVis(visData) {
 
   // Make a shallow copy to protect against mutation, while
   // recycling old nodes to preserve position and velocity.
-  const old = new Map(node.data().map((d) => [d.id, d]));
-  classesData = classesData.map((d) => Object.assign(old.get(d.id) || {}, d));
-  linksData = linksData.map((d) => Object.assign({}, d));
+  const oldNodes = new Map(node.data().map((d) => [d.id, d]));
+  classesData = classesData.map((d) => Object.assign(oldNodes.get(d.id) || {}, d));
+  let oldLinks = [...link.data()];
+  linksData.forEach(l => {
+    if(oldLinks.indexOf(l) === -1) {
+      oldLinks.push(l)
+    }
+  })
+  linksData = oldLinks
 
   node = node
-    .data(classesData, (d) => d.id)
+    .data(classesData)
     .join(enter => {
       let nodeContainer = enter.append('g')
         .classed('node', true)
         .attr('transform', `translate(${width / 2}, ${height / 2})`)
       nodeContainer.append("circle")
         .attr('r', d => getClassRadius(d))
-        .call((node) => node.append("title").text((d) => d.label))
         .call(drag(simulation))
         .on('click', (event, node) => {
           nodeClickManager.clickNode(event.target.parentNode, link)
@@ -115,14 +123,36 @@ function updateForceVis(visData) {
 
   let clickedLink = d3.select('#linkContainer path.clicked').data()
 
-  // linkLabel = linkLabel
-  //   .data(linksData)
-  //   .join(enter => {
-  //     enter.append('rect')
-  //       // .attr('fill', 'red')
-  //       // .call(drag(simulation))
-  //     return enter
-  //   })
+  linkLabel = linkLabel
+    .data(linksData)
+    .join(enter => {
+      if(enter.empty()) return;
+      let linkContainer = enter.append('g')
+        .classed('linkLabel', true)
+        .attr('transform', `translate(${width / 2}, ${height / 2})`)
+
+      let text = linkContainer.append('text')
+        .text(d => d.label)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr("stroke-width", '1')
+        .attr("stroke", "#000")
+        .attr("fill", "#000")
+        .attr('pointer-events', 'none')
+        .attr('y', '0')
+
+      let textBBox = text.node().getBBox()
+
+      linkContainer.insert('rect', 'text')  // Insert before text!
+        .attr('width', textBBox.width + 10)
+        .attr('height', textBBox.height + 10)
+        .attr('x', (textBBox.width + 10) / -2)
+        .attr('y', (textBBox.height + 10) / -2)
+        .call(drag(simulation))
+
+      return linkContainer
+    })
+
 
   link = link
     .data(linksData)
@@ -161,7 +191,9 @@ function updateForceVis(visData) {
 
     );
 
-  simulation.nodes(classesData);
+  var simulationNodes = [...classesData].concat([...linksData])
+  simulation.nodes(simulationNodes);
+
   simulation.force("link").links(linksData);
   simulation.alpha(1).restart().tick();
   ticked(); // render now!

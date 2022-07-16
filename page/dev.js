@@ -9,40 +9,40 @@ async function devQueryClasses(number, offset) {
 
 async function devQueryLink(sourceURI, targetURI) {
     if(Math.random() > 0.3) return []
-    await sleep(getRandomInt(1000, 10000))
+    await sleep(getRandomInt(500, 30000))
 
-    return [{
-        'source': sourceURI,
-        'target': targetURI,
-        'id': "http://www.example.com/testProperty",
-        'label': "testProperty",
-        'count': getRandomInt(1000, 20000)
-    }, {
-        'source': sourceURI,
-        'target': targetURI,
-        'id': "http://www.example.com/exampleProperty",
-        'label': "exampleProperty",
-        'count': getRandomInt(1000, 20000)
-    }]
+    // return [{
+    //     'source': sourceURI,
+    //     'target': targetURI,
+    //     'id': "http://www.example.com/testProperty",
+    //     'label': "testProperty",
+    //     'count': getRandomInt(1000, 20000)
+    // }, {
+    //     'source': sourceURI,
+    //     'target': targetURI,
+    //     'id': "http://www.example.com/exampleProperty",
+    //     'label': "exampleProperty",
+    //     'count': getRandomInt(1000, 20000)
+    // }]
 
 
-    // if(Math.random() > 0.3) {
-    //     return [{
-    //         'source': sourceURI,
-    //         'target': targetURI,
-    //         'id': "http://www.example.com/testProperty",
-    //         'label': "testProperty",
-    //         'count': getRandomInt(1000, 20000)
-    //     }]
-    // } else {
-    //     return [{
-    //         'source': sourceURI,
-    //         'target': targetURI,
-    //         'id': "http://www.example.com/exampleProperty",
-    //         'label': "exampleProperty",
-    //         'count': getRandomInt(1000, 20000)
-    //     }]
-    // }
+    if(Math.random() > 0.3) {
+        return [{
+            'source': sourceURI,
+            'target': targetURI,
+            'id': "http://www.example.com/testProperty",
+            'label': "testProperty",
+            'count': getRandomInt(1000, 20000)
+        }]
+    } else {
+        return [{
+            'source': sourceURI,
+            'target': targetURI,
+            'id': "http://www.example.com/exampleProperty",
+            'label': "exampleProperty",
+            'count': getRandomInt(1000, 20000)
+        }]
+    }
 }
 
 

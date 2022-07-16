@@ -1,5 +1,5 @@
 function getClassRadius(cls) {
-  return (Math.log(cls.count) / Math.log(10)) * 8;
+  return Math.max(Math.log(cls.count) / Math.log(1.2) - 15, 8);
 }
 
 function moveTransformString(transform, dx, dy) {
