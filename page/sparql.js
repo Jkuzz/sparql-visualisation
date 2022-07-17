@@ -184,10 +184,3 @@ async function updateVisGraph(visData) {
     updateForceVis(copyVisData)
     return visData
 }
-
-
-function getLabelFromURI(uri) {
-    let slashLast = uri.split('/').slice(-1)[0];  // get last element inplace
-    let hashLast = uri.split('#').slice(-1)[0];
-    return slashLast.length < hashLast.length ? slashLast : hashLast;
-}

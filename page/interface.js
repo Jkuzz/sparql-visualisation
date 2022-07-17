@@ -39,23 +39,51 @@ function displayNodeInfo(node, links) {
 }
 
 
-function displayPathInfo(link) {
+function displayPathInfo(link, allLinks) {
     displayNodeDetails(link)
+    displaySameLinks(link, allLinks)
 }
 
 
+/**
+ * Display all links as outgoing links of a node
+ * @param {Iterable} links
+ */
 function displayLinks(links) {
     const linksDiv = document.querySelector('#linksView')
     linksDiv.querySelector('.default').hidden = true
+    linksDiv.querySelector('.title').textContent = 'Node Links'
 
     // Clear detail container of previous info
     const linksContainer = linksDiv.querySelector('.container')
     removeElementChildren(linksContainer)
-    makeLinkGridHeader(linksContainer)
+    makeGridHeader(linksContainer, ['Property', 'Target', 'Count'])
 
     links.forEach(link => {
         makeLinkGridRow(linksContainer, link)
     });
+}
+
+
+/**
+ * Display all links that are the same as the selected link
+ * @param {Object} link
+ * @param {D3.Selection} allLinks D3
+ */
+function displaySameLinks(link, allLinks) {
+    const linksDiv = document.querySelector('#linksView')
+    linksDiv.querySelector('.default').hidden = true
+    linksDiv.querySelector('.title').textContent = 'Same Links'
+
+    // Clear detail container of previous info
+    const linksContainer = linksDiv.querySelector('.container')
+    removeElementChildren(linksContainer)
+    makeGridHeader(linksContainer, ['Source', 'Target', 'Count'])
+
+    allLinks.filter(l => l.uri === link.uri)
+        .each(lnk => {
+            makeLinkGridRow(linksContainer, lnk)
+        });
 }
 
 
@@ -70,11 +98,11 @@ function makeLinkGridRow(container, link) {
     newLink.setAttribute('class', 'row text-wrap text-break my-3')
 
     targetURI.setAttribute('class', 'col')
-    targetURI.textContent = link.target.label
-    targetURI.href = link.target.id
+    targetURI.textContent = getLabelFromURI(link.target)
+    targetURI.href = link.target
 
     propertyURI.textContent = link.label
-    propertyURI.href = link.id
+    propertyURI.href = link.uri
     propertyURI.setAttribute('class', 'col')
 
     count.textContent = Number(link.count).toLocaleString('en-US')
@@ -84,24 +112,16 @@ function makeLinkGridRow(container, link) {
 }
 
 
-function makeLinkGridHeader(container) {
+function makeGridHeader(container, headerStrings) {
     let header = document.createElement('div')
-    let property = document.createElement('strong')
-    let target = document.createElement('strong')
-    let count = document.createElement('strong')
-    header.appendChild(property)
-    header.appendChild(target)
-    header.appendChild(count)
-
     header.setAttribute('class', 'row')
 
-    target.setAttribute('class', 'col')
-    target.textContent = 'Target'
-    property.setAttribute('class', 'col')
-    property.textContent = 'Property'
-    count.setAttribute('class', 'col')
-    count.textContent = 'Count'
-
+    headerStrings.forEach(headerStr => {
+        let element = document.createElement('strong')
+        header.appendChild(element)
+        element.setAttribute('class', 'col')
+        element.textContent = headerStr
+    })
     container.appendChild(header)
 }
 

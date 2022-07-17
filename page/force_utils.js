@@ -2,6 +2,14 @@ function getClassRadius(cls) {
   return Math.max(Math.log(cls.count) / Math.log(1.2) - 15, 8);
 }
 
+
+function getLabelFromURI(uri) {
+  let slashLast = uri.split('/').slice(-1)[0];  // get last element inplace
+  let hashLast = uri.split('#').slice(-1)[0];
+  return slashLast.length < hashLast.length ? slashLast : hashLast;
+}
+
+
 function moveTransformString(transform, dx, dy) {
   let translatePos = transform.indexOf("translate(") + 10;
   let translateEnd = transform.indexOf(")", translatePos); // bind position to match correct ()
@@ -15,6 +23,7 @@ function moveTransformString(transform, dx, dy) {
   return newTransform;
 }
 
+
 function zoomTransformString(transform, newScale) {
   let scalePos = transform.indexOf("scale(") + 6;
   let scaleEnd = transform.indexOf(")", scalePos); // bind position to match correct ()
@@ -25,6 +34,7 @@ function zoomTransformString(transform, newScale) {
   return newTransform;
 }
 
+
 /**
  * Finds all outgoing links for the chosen node
  * @param {URI} nodeId
@@ -32,14 +42,16 @@ function zoomTransformString(transform, newScale) {
  * @returns {Array}
  */
 function getNodeLinks(nodeId, links) {
-  return links.filter((link) => link.source.id == nodeId);
+  return links.filter((link) => link.source == nodeId);
 }
+
 
 function calculatePathToCircleEdge(source, target, targetRadius) {
   let direction = p5.Vector.sub(source, target)
     .setMag(targetRadius + 20) // increase radius to accommodate for the arrow
   return p5.Vector.add(target, direction)
 }
+
 
 /**
  * Calculate bezier curve representing path between two nodes, label-aware
@@ -78,6 +90,7 @@ class NodeClickManager {
   lastClickedNode = null
   lastClickedPath = null
 
+
   clickNode = (clickedNode, links) => {
     if(this.lastClickedNode != null) {
       this.lastClickedNode.classList.remove('activeNode')
@@ -90,15 +103,8 @@ class NodeClickManager {
     clickedNode.classList.add('activeNode')
   }
 
-  clickPath = (event, path, allLinks) => {
-    // If clicked path label, get the path first
-    let target
-    if(event.target.nodeName != 'path') {
-      target = allLinks.filter(d => d.id == path.id).node()
-    } else {
-      target = event.target
-    }
 
+  clickPath = (event, path, allLinks) => {
     if(this.lastClickedPath != null) {
       this.lastClickedPath.classList.remove('clicked')
       this.lastClickedPath.removeAttribute('stroke-width')
@@ -110,9 +116,17 @@ class NodeClickManager {
       .attr('stroke', null)
       .attr('marker-end', null)
 
-    if(event == null) {
+    if(event == null) {  // Only deselect
       this.lastClickedPath = null
-      return // Only deselect
+      return
+    }
+
+    // If clicked path label, get the path first
+    let target
+    if(event.target.nodeName != 'path') {
+      target = allLinks.filter(d => d.id == path.id).node()
+    } else {
+      target = event.target
     }
     this.lastClickedPath = target
 
@@ -129,6 +143,6 @@ class NodeClickManager {
     target.setAttribute('stroke-width', 8)
     target.setAttribute('marker-end', 'url(#arrowHeadMain)')
 
-    displayPathInfo(path)
+    displayPathInfo(path, allLinks)
   }
 }

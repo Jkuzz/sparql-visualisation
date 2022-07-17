@@ -14,13 +14,15 @@ async function devQueryLink(sourceURI, targetURI) {
     // return [{
     //     'source': sourceURI,
     //     'target': targetURI,
-    //     'id': "http://www.example.com/testProperty",
+    //     'uri': "http://www.example.com/testProperty",
+    //     'id': sourceURI + "http://www.example.com/testProperty" + targetURI,
     //     'label': "testProperty",
     //     'count': getRandomInt(1000, 20000)
     // }, {
     //     'source': sourceURI,
     //     'target': targetURI,
-    //     'id': "http://www.example.com/exampleProperty",
+    //     'uri': "http://www.example.com/exampleProperty",
+    //     'id': sourceURI + "http://www.example.com/exampleProperty" + targetURI,
     //     'label': "exampleProperty",
     //     'count': getRandomInt(1000, 20000)
     // }]
@@ -39,7 +41,7 @@ async function devQueryLink(sourceURI, targetURI) {
         return [{
             'source': sourceURI,
             'target': targetURI,
-            'id': "http://www.example.com/exampleProperty",
+            'uri': "http://www.example.com/exampleProperty",
             'id': sourceURI + "http://www.example.com/exampleProperty" + targetURI,
             'label': "exampleProperty",
             'count': getRandomInt(1000, 20000)

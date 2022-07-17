@@ -34,7 +34,7 @@ var linkLabel = svgWrapper
   .append("g")
     .attr('id', 'linkLabelContainer')
     .attr("stroke", "#999")
-    .attr('fill', 'steelblue')
+    .attr('fill', 'DeepSkyBlue')
   .selectAll("rect");
 
 
