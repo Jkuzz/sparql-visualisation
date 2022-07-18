@@ -99,7 +99,7 @@ function displaySameLinks(link, allLinks) {
             makeLinkGridRow(linksContainer, [
                 {elementType: 'a', textContent: getLabelFromURI(lnk.source), href: lnk.source},
                 {elementType: 'a', textContent: getLabelFromURI(lnk.target), href: lnk.target},
-                {elementType: 'div', textContent: Number(link.count).toLocaleString('en-US')},
+                {elementType: 'div', textContent: Number(lnk.count).toLocaleString('en-US')},
             ])
         });
 }
