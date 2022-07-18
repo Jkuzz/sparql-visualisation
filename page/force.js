@@ -1,7 +1,7 @@
 const svg = d3
   .select('#visSvg')
 
-let width = svg.style('width').slice(0, -2)
+let width = svg.style('width').slice(0, -2)  // remove 'px' from the end
 let height = svg.style('height').slice(0, -2)
 
 
@@ -53,16 +53,6 @@ const simulation = d3
   .on("tick", ticked);
 
 
-svg.call(drag(simulation))
-
-svg.call(
-  d3.zoom().on("zoom", (event) => {
-    let originalTransform = svgWrapper.attr("transform")
-    svgWrapper.attr("transform", zoomTransformString(originalTransform, event.transform.k))
-  })
-)
-
-
 function ticked() {
   node
     .attr('transform', d => `translate(${d.x}, ${d.y})`)
@@ -74,12 +64,23 @@ function ticked() {
     .attr('d', d => makeLinkPath(d, node.data()))
 }
 
+
+svg.call(drag(simulation))
+svg.call(
+  d3.zoom().on("zoom", (event) => {
+    let originalTransform = svgWrapper.attr("transform")
+    svgWrapper.attr("transform", zoomTransformString(originalTransform, event.transform.k))
+  })
+)
+
+
 const mainPathColour = 'hsl(336, 100%, 55%)'
 const secondaryPathColour = 'hsl(336, 100%, 75%)'
 document.querySelector('#arrowHeadMain').setAttribute('fill', mainPathColour)
 document.querySelector('#arrowHeadSecondary').setAttribute('fill', secondaryPathColour)
 
 var nodeClickManager = new NodeClickManager()
+
 
 function updateForceVis(visData) {
   var linksData = 'links' in visData ? Object.values(visData.links) : []
@@ -196,11 +197,11 @@ function updateForceVis(visData) {
   var simulationNodes = [...classesData].concat([...linksData])
   simulation.nodes(simulationNodes);
 
-  let processedLinks = []
-  linksData.forEach(l => {
-    processedLinks.push({'source': l.source, 'target': l.id})
-    processedLinks.push({'source': l.id, 'target': l.target})
-  })
+  // Split semantic links into two simulation links for proper label behaviour
+  let processedLinks = linksData.flatMap(l => [
+    {'source': l.source, 'target': l.id},
+    {'source': l.id, 'target': l.target}
+  ])
 
   simulation.force("link").links(processedLinks);
   simulation.alpha(1).restart().tick();
@@ -208,7 +209,7 @@ function updateForceVis(visData) {
 }
 
 
-var draggingBackground = false;
+var draggingBackground = false;  // To prevent stuttering
 
 function drag(simulation) {
   function dragstarted(event) {
