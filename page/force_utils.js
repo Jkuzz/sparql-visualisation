@@ -1,8 +1,19 @@
+/**
+ * Get size of visualised class based on its count
+ * @param {Object} cls must contain .count property
+ * @returns {Number}
+ */
 function getClassRadius(cls) {
-  return Math.max(Math.log(cls.count) / Math.log(1.2) - 15, 8);
+  if(!(cls.hasOwnProperty('count'))) {return 1}
+  return Math.max(Math.log(cls.count) / Math.log(1.2) - 15, 8)
 }
 
 
+/**
+ * Extract usable label from URI. Takse last slice after either '/' or '#'
+ * @param {URI} uri
+ * @returns {String} extracted label
+ */
 function getLabelFromURI(uri) {
   let slashLast = uri.split('/').slice(-1)[0];  // get last element inplace
   let hashLast = uri.split('#').slice(-1)[0];
@@ -10,6 +21,13 @@ function getLabelFromURI(uri) {
 }
 
 
+/**
+ * From SVG transform string, move translate by (dx, dy)
+ * @param {String} transform SVG element's transform
+ * @param {Number} dx
+ * @param {Number} dy
+ * @returns {String} the modified string
+ */
 function moveTransformString(transform, dx, dy) {
   let translatePos = transform.indexOf("translate(") + 10;
   let translateEnd = transform.indexOf(")", translatePos); // bind position to match correct ()
@@ -24,6 +42,12 @@ function moveTransformString(transform, dx, dy) {
 }
 
 
+/**
+ * From SVG transform string, zoom scale to new scale
+ * @param {String} transform SVG element's transform
+ * @param {Number} newScale
+ * @returns {String} the modified string
+ */
 function zoomTransformString(transform, newScale) {
   let scalePos = transform.indexOf("scale(") + 6;
   let scaleEnd = transform.indexOf(")", scalePos); // bind position to match correct ()
@@ -39,13 +63,21 @@ function zoomTransformString(transform, newScale) {
  * Finds all outgoing links for the chosen node
  * @param {URI} nodeId
  * @param {Array} links
- * @returns {Array}
+ * @returns {Array} filtered array
  */
 function getNodeLinks(nodeId, links) {
   return links.filter((link) => link.source == nodeId);
 }
 
 
+/**
+ * From two input nodes, calculates the position on their path that intersects
+ * with the target node's edge.
+ * @param {p5.Vector} source position of source node
+ * @param {p5.Vector} target position of source node
+ * @param {Number} targetRadius radius of target node
+ * @returns {p5.Vector} position of target edge intersect relative to target node
+ */
 function calculatePathToCircleEdge(source, target, targetRadius) {
   let direction = p5.Vector.sub(source, target)
     .setMag(targetRadius + 20) // increase radius to accommodate for the arrow
@@ -55,19 +87,20 @@ function calculatePathToCircleEdge(source, target, targetRadius) {
 
 /**
  * Calculate bezier curve representing path between two nodes, label-aware
- * @param {*} link data item of the link label
+ * @param {*} label data item of the link label
  * @param {*} nodes nodes of simulation to find proper source and target in
  * @returns {String} representation of svg path curve
  */
-function makeLinkPath(link, nodes) {
-  let sourceNode = nodes.filter(n => n.id == link.source)[0]
-  let targetNode = nodes.filter(n => n.id == link.target)[0]
+function makeLinkPath(label, nodes) {
+  let sourceNode = nodes.filter(n => n.id == label.source)[0]
+  let targetNode = nodes.filter(n => n.id == label.target)[0]
 
+  // Create p5 vectors for easier operations
   let source = new p5.Vector(sourceNode.x, sourceNode.y)
   let target = new p5.Vector(targetNode.x, targetNode.y)
-  let label = new p5.Vector(link.x, link.y);
+  let labelVec = new p5.Vector(label.x, label.y);
   let targetEdgeIntersect = calculatePathToCircleEdge(
-    label,
+    labelVec,
     target,
     getClassRadius(targetNode)
   )
@@ -78,7 +111,7 @@ function makeLinkPath(link, nodes) {
     targetEdgeIntersect.x + source.x,
     targetEdgeIntersect.y + source.y
   ).div(2)
-  let bezierPoint =  midpoint.add(label.sub(midpoint).mult(2))
+  let bezierPoint =  midpoint.add(labelVec.sub(midpoint).mult(2))
 
   return `
     M ${source.x} ${source.y}
@@ -86,6 +119,10 @@ function makeLinkPath(link, nodes) {
 }
 
 
+/**
+ * Handles clicking on visualisation objects.
+ * Methods manage deselecting of previously clicked object.
+ */
 class NodeClickManager {
   lastClickedNode = null
   lastClickedPath = null

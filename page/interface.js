@@ -33,12 +33,22 @@ const displayProperties = {
 }
 
 
+/**
+ * Display information about clicked node and all outgoing links in the UI
+ * @param {Object} node Node that was clicked
+ * @param {Iterable} links node's outgoing links
+ */
 function displayNodeInfo(node, links) {
     displayNodeDetails(node)
     displayLinks(links)
 }
 
 
+/**
+ * Display information about clicked link and all links of the same type in the UI
+ * @param {Object} link Link that was clicked
+ * @param {D3.Selection} allLinks containing all links in the visualisation
+ */
 function displayPathInfo(link, allLinks) {
     displayNodeDetails(link)
     displaySameLinks(link, allLinks)
@@ -60,7 +70,11 @@ function displayLinks(links) {
     makeGridHeader(linksContainer, ['Property', 'Target', 'Count'])
 
     links.forEach(link => {
-        makeLinkGridRow(linksContainer, link)
+        makeLinkGridRow(linksContainer, [
+            {elementType: 'a', textContent: getLabelFromURI(link.uri), href: link.uri},
+            {elementType: 'a', textContent: getLabelFromURI(link.target), href: link.target},
+            {elementType: 'div', textContent: Number(link.count).toLocaleString('en-US')},
+        ])
     });
 }
 
@@ -82,36 +96,42 @@ function displaySameLinks(link, allLinks) {
 
     allLinks.filter(l => l.uri === link.uri)
         .each(lnk => {
-            makeLinkGridRow(linksContainer, lnk)
+            makeLinkGridRow(linksContainer, [
+                {elementType: 'a', textContent: getLabelFromURI(lnk.source), href: lnk.source},
+                {elementType: 'a', textContent: getLabelFromURI(lnk.target), href: lnk.target},
+                {elementType: 'div', textContent: Number(link.count).toLocaleString('en-US')},
+            ])
         });
 }
 
 
-function makeLinkGridRow(container, link) {
+/**
+ * Make a Bootstrap row containing the provided column content as cols
+ * @param {HTMLElement} container new row will be appended here
+ * @param {Iterable} columns {elementType, textContent, [href]}
+ */
+function makeLinkGridRow(container, columns) {
     let newLink = document.createElement('div')
-    let propertyURI = document.createElement('a')
-    let targetURI = document.createElement('a')
-    let count = document.createElement('div')
-    newLink.appendChild(propertyURI)
-    newLink.appendChild(targetURI)
-    newLink.appendChild(count)
     newLink.setAttribute('class', 'row text-wrap text-break my-3')
 
-    targetURI.setAttribute('class', 'col')
-    targetURI.textContent = getLabelFromURI(link.target)
-    targetURI.href = link.target
-
-    propertyURI.textContent = link.label
-    propertyURI.href = link.uri
-    propertyURI.setAttribute('class', 'col')
-
-    count.textContent = Number(link.count).toLocaleString('en-US')
-    count.setAttribute('class', 'col')
-
+    columns.forEach(col => {
+        let colElement = document.createElement(col.elementType)
+        newLink.appendChild(colElement)
+        colElement.setAttribute('class', 'col')
+        colElement.textContent = col.textContent
+        if(col.href) {
+            colElement.href = col.href
+        }
+    })
     container.appendChild(newLink)
 }
 
 
+/**
+ * Create a Bootstrap grid header with the provided header strings
+ * @param {HTMLElement} container to append header to
+ * @param {Iterable} headerStrings Strings of header cols
+ */
 function makeGridHeader(container, headerStrings) {
     let header = document.createElement('div')
     header.setAttribute('class', 'row')
