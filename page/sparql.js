@@ -1,17 +1,3 @@
-const testQuery = `
-PREFIX dcat: <http://www.w3.org/ns/dcat#>
-PREFIX dct: <http://purl.org/dc/terms/>
-PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-SELECT DISTINCT ?poskytovatel ?datova_sada ?nazev
-WHERE {
-    GRAPH ?g {
-        ?datova_sada a dcat:Dataset; dct:title ?nazev;
-        dct:publisher/foaf:name ?poskytovatel.
-    }
-}
-LIMIT 100
-`
-
 const pathQuery = `
 SELECT ?a ?p ?b (COUNT(*) AS ?count)
 WHERE { [ a ?a ] ?p [ a ?b ] . }
@@ -92,29 +78,6 @@ function main() {
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-
-async function queryClassProperties(visData) {
-    if(!visData.hasOwnProperty('links')) {
-        visData['links'] = []
-    }
-
-    visData.links.push({
-        'source': "http://www.w3.org/ns/dcat#Distribution",
-        'target': "http://www.w3.org/ns/dqv#QualityMeasurement",
-        'id': "http://www.w3.org/ns/dqv#hasQualityMeasurement",
-        'label': "hasQualityMeasurement",
-        'count': 481602
-    })
-    visData.links.push({
-        'source': "http://www.w3.org/ns/dqv#QualityMeasurement",
-        'target': "http://www.w3.org/ns/dcat#Distribution",
-        'id': "http://www.w3.org/ns/dqv#computedOn",
-        'label': "computedOn",
-        'count': 481614
-    })
-    return updateVisGraph(visData);
 }
 
 

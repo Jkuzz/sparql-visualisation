@@ -1,13 +1,19 @@
 window.addEventListener('DOMContentLoaded', () => {
     document.getElementById("nextClassesBtn").addEventListener('click', () => {
         devQueryClasses(5, queriedClasses)
-            .then(response => queryHandler.handleClassesQuery(response))
+            .then(response => {
+                queriedClasses += response.length;
+                queryHandler.handleClassesQuery(response)
+            })
     })
 
     document.getElementById("getClassBtn").addEventListener('click', () => {
         let input = document.getElementById('classUriInput')
         devQueryClass(input.value)
-            .then(response => queryHandler.handleClassesQuery(response))
+            .then(response => {
+                queriedClasses += response.length
+                queryHandler.handleClassesQuery(response)
+            })
     })
 })
 
